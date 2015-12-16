@@ -17,6 +17,7 @@ def check_connectivity():
             print "%s: %s on %s is reachable" % (time.asctime(), container.name, container.node)
         except requests.exceptions.RequestException as e:
             print "%s: %s on %s is NOT reachable: %s" % (time.asctime(), container.name, container.node, e)
+    sys.stdout.flush()
 
 
 if __name__ == '__main__':
