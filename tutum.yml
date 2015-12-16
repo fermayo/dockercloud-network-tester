@@ -1,3 +1,5 @@
 network-tester:
   image: fermayo/tutum-network-tester
   deployment_strategy: every_node
+  roles:
+    - global
