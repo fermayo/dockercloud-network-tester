@@ -21,7 +21,7 @@ def check_connectivity():
 
 
 if __name__ == '__main__':
-    signal.signal(signal.SIGTERM, sys.exit)
+    signal.signal(signal.SIGTERM, lambda x, y: sys.exit())
     while True:
         check_connectivity()
         time.sleep(5)
