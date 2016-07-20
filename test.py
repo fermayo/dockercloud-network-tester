@@ -1,14 +1,14 @@
 import os
 import time
 import signal
-import tutum
+import dockercloud
 import requests
 import sys
 
 
 def check_connectivity():
-    my_service = tutum.Utils.fetch_by_resource_uri(os.getenv("TUTUM_SERVICE_API_URI"))
-    containers = tutum.Container.list(service=my_service.resource_uri, state="Running")
+    my_service = dockercloud.Utils.fetch_by_resource_uri(os.getenv("DOCKERCLOUD_SERVICE_API_URI"))
+    containers = dockercloud.Container.list(service=my_service.resource_uri, state="Running")
     print "%s: Trying to contact: %s" % (time.asctime(), " ".join([c.private_ip for c in containers]))
     for container in containers:
         try:
