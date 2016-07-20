@@ -4,6 +4,8 @@ WORKDIR /app
 ADD /requirements.txt /app/requirements.txt
 RUN pip install -r /app/requirements.txt
 
+# Wait this number of seconds between checks
+ENV POLLING_PERIOD 5
+
 ADD / /app
-EXPOSE 8000
-CMD ["/app/run.sh"]
+CMD ["python", "/app/test.py"]

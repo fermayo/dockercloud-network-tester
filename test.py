@@ -2,26 +2,31 @@ import os
 import time
 import signal
 import dockercloud
-import requests
 import sys
+import pyping
+import re
+
+node_short_uuid = re.compile(r"\/(\w+)-")
+polling_period = int(os.getenv("POLLING_PERIOD", 5))
+my_container_short_uuid = node_short_uuid.search(os.getenv("DOCKERCLOUD_CONTAINER_API_URI")).group(1)
 
 
-def check_connectivity():
-    my_service = dockercloud.Utils.fetch_by_resource_uri(os.getenv("DOCKERCLOUD_SERVICE_API_URI"))
+def check_connectivity(my_service):
     containers = dockercloud.Container.list(service=my_service.resource_uri, state="Running")
-    print "%s: Trying to contact: %s" % (time.asctime(), " ".join([c.private_ip for c in containers]))
+    results = {}
     for container in containers:
-        try:
-            r = requests.get("http://%s:8000" % container.private_ip, timeout=2)
-            r.raise_for_status()
-            print "%s: %s on %s is reachable" % (time.asctime(), container.name, container.node)
-        except requests.exceptions.RequestException as e:
-            print "%s: %s on %s is NOT reachable: %s" % (time.asctime(), container.name, container.node, e)
+        if container.resource_uri == os.getenv("DOCKERCLOUD_CONTAINER_API_URI"):
+            continue
+        r = pyping.ping(container.name, count=1, timeout=2000, quiet_output=True)
+        results[node_short_uuid.search(container.node).group(1)] = r.avg_rtt
+    print " | ".join(["%s->%s: %8.2f ms" % (my_container_short_uuid, k, float(v)) for k, v in results.iteritems()])
     sys.stdout.flush()
 
 
 if __name__ == '__main__':
     signal.signal(signal.SIGTERM, lambda x, y: sys.exit())
+    print "%s: Starting periodic pings with a polling period of %s seconds" % (time.asctime(), polling_period)
+    my_service = dockercloud.Utils.fetch_by_resource_uri(os.getenv("DOCKERCLOUD_SERVICE_API_URI"))
     while True:
-        check_connectivity()
-        time.sleep(5)
+        check_connectivity(my_service)
+        time.sleep(polling_period)
