@@ -17,15 +17,20 @@ def check_connectivity(my_service):
     containers = dockercloud.Container.list(service=my_service.resource_uri, state="Running")
     jobs = [gevent.spawn(ping_container, container) for container in containers]
     gevent.joinall(jobs, timeout=2100)
-    results = [job.value for job in jobs]
-    print " | ".join(sorted(filter(None, results)))
-    sys.stdout.flush()
+    results = filter(None, [job.value for job in jobs])
+    if results:
+        print " | ".join(sorted(results))
+        sys.stdout.flush()
 
 
 def ping_container(container):
-    r = pyping.ping(container.name, count=1, timeout=2000, quiet_output=True)
-    return "%s->%s: %s" % (my_container_short_uuid, node_short_uuid.search(container.node).group(1),
-                           "%8.2f ms" % float(r.avg_rtt) if r.avg_rtt else "%11s" % "!!!")
+    r = pyping.ping(container.name, count=3, timeout=2000, quiet_output=True)
+    rtt = float(r.avg_rtt) if r.avg_rtt else None
+    if not rtt or rtt >= int(os.getenv("PING_THRESHOLD_MS", 0)):
+        return "%s->%s: %s" % (my_container_short_uuid, node_short_uuid.search(container.node).group(1),
+                               "%8.2f ms" % rtt if rtt else "%11s" % "!!!")
+    else:
+        return
 
 
 if __name__ == '__main__':

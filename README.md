@@ -23,3 +23,8 @@ Tests connectivity to other containers through the overlay network
     [network-tester-2]2016-07-20T16:50:47.011318295Z e9155705->0facb879:    14.78 ms | e9155705->264d48bc:     0.20 ms | e9155705->6f989aef:     5.22 ms | e9155705->f17488a6:     2.34 ms 
     [network-tester-1]2016-07-20T16:50:48.945198928Z 4ec75006->0facb879:     5.19 ms | 4ec75006->264d48bc:     7.65 ms | 4ec75006->6f989aef:     0.43 ms | 4ec75006->f17488a6:    12.99 ms
 
+
+# Settings
+
+* `POLLING_PERIOD` (default `5`): Wait this number of seconds between checks
+* `PING_THRESHOLD_MS` (default `0`): Log only pings with a RTT longer than this number of milliseconds. Pings that fail are always logged
