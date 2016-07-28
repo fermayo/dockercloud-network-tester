@@ -2,6 +2,7 @@ backports.ssl-match-hostname==3.4.0.2
 future==0.15.0
 gevent==1.1.1
 greenlet==0.4.10
+psutil==4.3.0
 pyping==0.0.5
 python-dockercloud==1.0.7
 requests==2.10.0

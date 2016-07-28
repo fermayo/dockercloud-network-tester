@@ -7,10 +7,12 @@ import sys
 import pyping
 import re
 import gevent
+import psutil
 
 node_short_uuid = re.compile(r"\/(\w+)-")
 polling_period = int(os.getenv("POLLING_PERIOD", 5))
 my_container_short_uuid = node_short_uuid.search(os.getenv("DOCKERCLOUD_CONTAINER_API_URI")).group(1)
+psutil.PROCFS_PATH = "/host/proc"
 
 
 def check_connectivity(my_service):
@@ -19,7 +21,8 @@ def check_connectivity(my_service):
     gevent.joinall(jobs, timeout=2100)
     results = filter(None, [job.value for job in jobs])
     if results:
-        print " | ".join(sorted(results))
+        print "[CPU: %s%% MEM: %s%%] %s" % (psutil.cpu_percent(), psutil.virtual_memory().percent,
+                                            " | ".join(sorted(results)))
         sys.stdout.flush()
 
 
@@ -35,6 +38,10 @@ def ping_container(container):
 
 if __name__ == '__main__':
     signal.signal(signal.SIGTERM, lambda x, y: sys.exit())
+    if not os.path.isdir(psutil.PROCFS_PATH):
+        print "You must mount the host's /proc folder to /host/proc inside this container"
+        exit(1)
+
     print "%s: Starting periodic pings with a polling period of %s seconds" % (time.asctime(), polling_period)
     my_service = dockercloud.Utils.fetch_by_resource_uri(os.getenv("DOCKERCLOUD_SERVICE_API_URI"))
     while True:

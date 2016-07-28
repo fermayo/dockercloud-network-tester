@@ -1,5 +1,7 @@
 network-tester:
   image: fermayo/network-tester
   deployment_strategy: every_node
+  volumes:
+    - /proc:/host/proc:ro
   roles:
     - global
