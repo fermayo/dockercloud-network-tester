@@ -18,13 +18,14 @@ def check_connectivity(my_service):
     jobs = [gevent.spawn(ping_container, container) for container in containers]
     gevent.joinall(jobs, timeout=2100)
     results = [job.value for job in jobs]
-    print " | ".join(sorted(results))
+    print " | ".join(sorted(filter(None, results)))
     sys.stdout.flush()
 
 
 def ping_container(container):
     r = pyping.ping(container.name, count=1, timeout=2000, quiet_output=True)
-    return "%s->%s: %8.2f ms" % (my_container_short_uuid, node_short_uuid.search(container.node).group(1), float(r.avg_rtt))
+    return "%s->%s: %s" % (my_container_short_uuid, node_short_uuid.search(container.node).group(1),
+                           "%8.2f ms" % float(r.avg_rtt) if r.avg_rtt else "%11s" % "!!!")
 
 
 if __name__ == '__main__':
