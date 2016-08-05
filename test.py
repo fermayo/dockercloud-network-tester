@@ -1,3 +1,4 @@
+from dockercloud import ApiError
 from gevent import monkey; monkey.patch_all()
 import os
 import time
@@ -16,14 +17,17 @@ psutil.PROCFS_PATH = "/host/proc"
 
 
 def check_connectivity(my_service):
-    containers = dockercloud.Container.list(service=my_service.resource_uri, state="Running")
-    jobs = [gevent.spawn(ping_container, container) for container in containers]
-    gevent.joinall(jobs, timeout=2100)
-    results = filter(None, [job.value for job in jobs])
-    if results:
-        print "[CPU: %s%% MEM: %s%%] %s" % (psutil.cpu_percent(), psutil.virtual_memory().percent,
-                                            " | ".join(sorted(results)))
-        sys.stdout.flush()
+    try:
+        containers = dockercloud.Container.list(service=my_service.resource_uri, state="Running")
+        jobs = [gevent.spawn(ping_container, container) for container in containers]
+        gevent.joinall(jobs, timeout=2100)
+        results = filter(None, [job.value for job in jobs])
+        if results:
+            print "[CPU: %s%% MEM: %s%%] %s" % (psutil.cpu_percent(), psutil.virtual_memory().percent,
+                                                " | ".join(sorted(results)))
+            sys.stdout.flush()
+    except ApiError as e:
+        print "Failed to contact Docker Cloud API: %s" % e
 
 
 def ping_container(container):
